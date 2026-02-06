@@ -87,8 +87,8 @@ struct HomeView: View {
                     // Withdraw button
                     Button(action: { showWithdraw = true }) {
                         Text("WITHDRAW")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.brandBlue)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                             .background(Color.white)
@@ -97,11 +97,11 @@ struct HomeView: View {
                     // Deposit button
                     Button(action: { showDeposit = true }) {
                         Text("DEPOSIT")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
-                            .background(Color.brandDarkBlue)
+                            .background(Color.black)
                             .cornerRadius(10)
                     }
                 }
