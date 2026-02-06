@@ -79,7 +79,9 @@ struct TransferSheetView: View {
                 .padding(.horizontal)
 
                 CustomKeypad(enteredValue: $amountString) {
-                    validateAndProcess()
+                    Task {
+                        await validateAndProcess()
+                    }
                 }
                 .padding(.bottom, 20)
             }
@@ -96,21 +98,21 @@ struct TransferSheetView: View {
         .presentationCornerRadius(30)
     }
 
-    private func validateAndProcess() {
+    private func validateAndProcess() async {
         guard let value = Double(amountString), value > 0 else {
             alertMessage = "Please enter a valid amount."
             showAlert = true
             return
         }
 
-        let rate = viewModel.getRate(for: selectedCurrency)
+        let rate = await viewModel.getRate(for: selectedCurrency)
         let inrValue = value * rate
 
         if mode == .withdraw && inrValue > viewModel.balance {
             alertMessage = "You do not have enough balance for this transaction."
             showAlert = true
         } else {
-            // 3. Pass the modelContext to your ViewModel functions
+            // Pass the modelContext to your ViewModel functions
             if mode == .deposit {
                 viewModel.deposit(amount: value, currency: selectedCurrency, context: modelContext)
             } else {
@@ -120,4 +122,3 @@ struct TransferSheetView: View {
         }
     }
 }
-

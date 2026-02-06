@@ -12,60 +12,80 @@ import SwiftData
 class AppViewModel: ObservableObject {
     @AppStorage("user_balance") var balance: Double = 0.0
     @Published var currentUser = User(name: "Alex Walker", greeting: "Good Morning 👋", image: "Profile")
+    @Published var isLoading: Bool = false // Tracks API call state
 
+    // Fallback rates if the API is unavailable
     private let exchangeRates: [String: Double] = [
-        "INR": 1.0,
-        "USD": 83.39,
-        "AED": 22.70,
-        "JPY": 0.54,
-        "CNY": 11.52,
-        "GBP": 105.45,
-        "CAD": 61.20,
-        "AUD": 54.80,
-        "IQD": 0.064,
-        "KRW": 0.062
+        "INR": 1.0, "USD": 83.39, "AED": 22.70, "JPY": 0.54,
+        "CNY": 11.52, "GBP": 105.45, "CAD": 61.20, "AUD": 54.80,
+        "IQD": 0.064, "KRW": 0.062
     ]
 
+    init() {
+        
+    }
+
     func deposit(amount: Double, currency: String = "INR", context: ModelContext) {
-        let inrValue = amount * getRate(for: currency)
-
-        let newTransaction = Transaction(
-            title: "ID\(UUID().uuidString.prefix(8).uppercased())",
-            date: Date(),
-            amount: amount,
-            type: .deposit,
-            currency: currency
-        )
-
-        withAnimation {
-            // 4. Save to SwiftData persistent storage
-            context.insert(newTransaction)
-            print("Data deposited into database")
-            balance += inrValue
+        Task {
+            await updateRateAndProcess(amount: amount, currency: currency, type: .deposit, context: context)
         }
     }
 
     func withdraw(amount: Double, currency: String = "INR", context: ModelContext) {
-        let inrValue = amount * getRate(for: currency)
+        Task {
+            await updateRateAndProcess(amount: amount, currency: currency, type: .withdraw, context: context)
+        }
+    }
 
-        guard balance >= inrValue else { return }
+    @MainActor
+    private func updateRateAndProcess(amount: Double, currency: String, type: TransactionType, context: ModelContext) async {
+        isLoading = true
 
+        // 1. Fetch live rate or fallback to static rate
+        let rate: Double
+        do {
+            rate = try await CurrencyService.getConversionRate(from: currency)
+        } catch {
+            print("API Error, using fallback rate: \(error.localizedDescription)")
+            rate = await getRate(for: currency)
+        }
+
+        let inrValue = amount * rate
+        isLoading = false
+
+        // 2. Validate withdrawal balance
+        if type == .withdraw && balance < inrValue {
+            print("Insufficient funds")
+            return
+        }
+
+        // 3. Create and save transaction
         let newTransaction = Transaction(
             title: "ID\(UUID().uuidString.prefix(8).uppercased())",
             date: Date(),
             amount: amount,
-            type: .withdraw,
+            type: type,
             currency: currency
         )
 
         withAnimation {
             context.insert(newTransaction)
-            print("Data widraw from the database")
-            balance -= inrValue
+            if type == .deposit {
+                balance += inrValue
+                print("Data deposited: \(inrValue) INR")
+            } else {
+                balance -= inrValue
+                print("Data withdrawn: \(inrValue) INR")
+            }
         }
     }
 
-    func getRate(for currency: String) -> Double {
-        return exchangeRates[currency] ?? 1.0
+    func getRate(for currency: String) async -> Double {
+        do {
+            return try await CurrencyService.getConversionRate(from: currency)
+        } catch {
+            print("API Error, using fallback rate: \(error.localizedDescription)")
+            return exchangeRates[currency] ?? 1.0
+        }
     }
 }

@@ -11,6 +11,9 @@ struct TransactionRow: View {
     @ObservedObject var viewModel: AppViewModel
     let transaction: Transaction
 
+    // 1. Create a state variable to hold the calculated amount
+    @State private var calculatedINR: Double?
+
     var body: some View {
         HStack(spacing: 15) {
             // Icon Section
@@ -51,9 +54,14 @@ struct TransactionRow: View {
                             .font(.system(size: 10))
                             .foregroundColor(.gray.opacity(0.6))
 
-                        // Using the ViewModel helper for accurate display
-                        Text("₹ \(String(format: "%.2f", transaction.amount * viewModel.getRate(for: transaction.currency)))")
-                            .font(.system(size: 18, weight: .bold))
+                        // Display a loading indicator or the calculated value
+                        if let inrValue = calculatedINR {
+                            Text("₹ \(String(format: "%.2f", inrValue))")
+                                .font(.system(size: 18, weight: .bold))
+                        } else {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        }
                     }
                 }
             }
@@ -63,6 +71,14 @@ struct TransactionRow: View {
         .background(Color.white)
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
+        .task {
+            if transaction.currency != "INR" && transaction.currency != "₹" {
+                let rate = await viewModel.getRate(for: transaction.currency)
+                withAnimation {
+                    calculatedINR = transaction.amount * rate
+                }
+            }
+        }
     }
 
     func formatDate(_ date: Date) -> String {
