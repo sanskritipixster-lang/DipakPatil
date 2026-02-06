@@ -91,5 +91,3 @@ If the API is unavailable, the app uses static fallback rates in:
 - Currency conversions are always normalized to INR.
 
 ## License
-
-Add your license here.
