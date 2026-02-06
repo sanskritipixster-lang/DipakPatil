@@ -34,7 +34,7 @@ struct CurrencyConverterApp: App {
                         )
                 } else {
                     if hasFinishedOnboarding {
-                        print("Home Screen")
+                        HomeView(viewModel: viewModel)
                     } else {
                         OnboardingView(viewModel: viewModel)
                     }
