@@ -11,7 +11,7 @@ struct TransactionRow: View {
     @ObservedObject var viewModel: AppViewModel
     let transaction: Transaction
 
-    // 1. Create a state variable to hold the calculated amount
+    // Create a state variable to hold the calculated amount
     @State private var calculatedINR: Double?
 
     var body: some View {

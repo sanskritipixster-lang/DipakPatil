@@ -41,7 +41,7 @@ class AppViewModel: ObservableObject {
     private func updateRateAndProcess(amount: Double, currency: String, type: TransactionType, context: ModelContext) async {
         isLoading = true
 
-        // 1. Fetch live rate or fallback to static rate
+        // Fetch live rate or fallback to static rate
         let rate: Double
         do {
             rate = try await CurrencyService.getConversionRate(from: currency)
@@ -50,16 +50,17 @@ class AppViewModel: ObservableObject {
             rate = await getRate(for: currency)
         }
 
+        // Calculate the INR equivalent using the fetched or fallback rate
         let inrValue = amount * rate
         isLoading = false
 
-        // 2. Validate withdrawal balance
+        // Validate withdrawal balance
         if type == .withdraw && balance < inrValue {
             print("Insufficient funds")
             return
         }
 
-        // 3. Create and save transaction
+        // Create and save transaction
         let newTransaction = Transaction(
             title: "ID\(UUID().uuidString.prefix(8).uppercased())",
             date: Date(),
@@ -72,10 +73,10 @@ class AppViewModel: ObservableObject {
             context.insert(newTransaction)
             if type == .deposit {
                 balance += inrValue
-                print("Data deposited: \(inrValue) INR")
+                print("Curreny (rate: \(rate), amount: \(amount)) = money deposited: \(inrValue) INR")
             } else {
                 balance -= inrValue
-                print("Data withdrawn: \(inrValue) INR")
+                print("Curreny (rate: \(rate), amount: \(amount)) = money withdrawn: \(inrValue) INR")
             }
         }
     }

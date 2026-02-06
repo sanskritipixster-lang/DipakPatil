@@ -7,7 +7,6 @@
 
 import Foundation
 
-// API Response model
 struct ExchangeRateResponse: Decodable {
     let conversion_rate: Double
 }
@@ -22,7 +21,6 @@ class CurrencyService {
 
         let (data, response) = try await URLSession.shared.data(from: url)
 
-        // Check for valid HTTP response
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
