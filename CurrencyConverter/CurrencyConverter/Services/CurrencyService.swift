@@ -18,13 +18,13 @@ struct ExchangeRateResponse: Decodable {
 // Service responsible for fetching currency exchange rates from the API
 class CurrencyService {
     static func getConversionRate(from base: String, to target: String = "INR") async throws -> Double {
-        // Construct the API endpoint URL
-        let urlString = "\(Constants.AppUrl.baseURL)/\(Constants.AppUrl.apiKey)/pair/\(base)/\(target)"
-
-        // Validate URL string
-        guard let url = URL(string: urlString) else {
-            throw URLError(.badURL)
+        // Retrieve from Keychain
+        guard let apiKey = KeychainHelper.fetch() else {
+            throw URLError(.userAuthenticationRequired)
         }
+
+        // Construct the API endpoint URL
+        let urlString = "\(Constants.AppUrl.baseURL)/\(apiKey)/pair/\(base)/\(target)"
 
         // Perform network request
         let (data, response) = try await URLSession.shared.data(from: url)

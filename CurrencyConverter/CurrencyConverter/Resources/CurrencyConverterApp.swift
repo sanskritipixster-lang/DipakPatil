@@ -14,6 +14,10 @@ struct CurrencyConverterApp: App {
     @State private var showSplash = true
     @AppStorage("hasFinishedOnboarding") var hasFinishedOnboarding: Bool = false
 
+    init() {
+        KeychainHelper.save("8cea16c76b5c2669eae114d1")
+    }
+
     // MARK: - Body
     var body: some Scene {
         WindowGroup {
