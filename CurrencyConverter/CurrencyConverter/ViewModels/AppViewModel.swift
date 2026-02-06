@@ -12,7 +12,7 @@ import SwiftData
 class AppViewModel: ObservableObject {
     @AppStorage("user_balance") var balance: Double = 0.0
     @Published var currentUser = User(name: "Alex Walker", greeting: "Good Morning 👋", image: "Profile")
-    @Published var isLoading: Bool = false // Tracks API call state
+    @Published var isLoading: Bool = false 
 
     // Fallback rates if the API is unavailable
     private let exchangeRates: [String: Double] = [
@@ -21,16 +21,14 @@ class AppViewModel: ObservableObject {
         "IQD": 0.064, "KRW": 0.062
     ]
 
-    init() {
-        
-    }
-
+    // Deposits money in the specified currency and converts to INR
     func deposit(amount: Double, currency: String = "INR", context: ModelContext) {
         Task {
             await updateRateAndProcess(amount: amount, currency: currency, type: .deposit, context: context)
         }
     }
 
+    // Withdraws money in the specified currency after converting from INR balance
     func withdraw(amount: Double, currency: String = "INR", context: ModelContext) {
         Task {
             await updateRateAndProcess(amount: amount, currency: currency, type: .withdraw, context: context)
@@ -54,13 +52,13 @@ class AppViewModel: ObservableObject {
         let inrValue = amount * rate
         isLoading = false
 
-        // Validate withdrawal balance
+        // Validate withdrawal: ensure sufficient balance
         if type == .withdraw && balance < inrValue {
             print("Insufficient funds")
             return
         }
 
-        // Create and save transaction
+        // Create transaction record with unique ID
         let newTransaction = Transaction(
             title: "ID\(UUID().uuidString.prefix(8).uppercased())",
             date: Date(),
@@ -69,6 +67,7 @@ class AppViewModel: ObservableObject {
             currency: currency
         )
 
+        // Persist transaction and update balance with animation
         withAnimation {
             context.insert(newTransaction)
             if type == .deposit {

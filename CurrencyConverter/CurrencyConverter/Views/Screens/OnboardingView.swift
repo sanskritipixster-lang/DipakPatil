@@ -8,26 +8,33 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    // MARK: - Properties
     @ObservedObject var viewModel: AppViewModel
     @AppStorage("hasFinishedOnboarding") var hasFinishedOnboarding: Bool = false
 
+    // MARK: - Body
     var body: some View {
         VStack {
             Spacer()
 
+            // Welcome Header
             Text("Welcome to\nCurrency Convert!")
                 .font(.system(size: 38))
                 .bold()
                 .multilineTextAlignment(.center)
 
+            
             Spacer()
 
+            // Illustration
             Image("Illustrator")
                 .resizable()
                 .scaledToFit()
 
+            
             Spacer()
 
+            // Feature Description
             Text("Instantly convert between over 150 currencies. Currency Convert is your one-stop solution for effortless curreny conversions.")
                 .font(.headline)
                 .bold()
@@ -35,8 +42,10 @@ struct OnboardingView: View {
                 .padding(.horizontal, 40)
                 .padding(.top, 10)
 
+            
             Spacer()
 
+            // Get Started Button
             Button(action: {
                 withAnimation { hasFinishedOnboarding = true }
             }) {

@@ -9,11 +9,11 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    @ObservedObject var viewModel: AppViewModel
 
+    // MARK: - Properties
+    @ObservedObject var viewModel: AppViewModel
     // Context of SwiftData DB
     @Environment(\.modelContext) private var modelContext
-
     // Fetch data from SwiftData DB using Query handler
     @Query(sort: \Transaction.date, order: .reverse) var transactions: [Transaction]
 
@@ -21,17 +21,23 @@ struct HomeView: View {
     @State private var showWithdraw = false
     @State private var isExpanded = false
 
+    // MARK: - Body
+
     var body: some View {
         ZStack(alignment: .top) {
+            // Top gradient background
             Color.brandBlue.ignoresSafeArea(edges: .top)
+            
             VStack(spacing: 0) {
                 HStack {
+                    // User profile image
                     Image(viewModel.currentUser.image)
                         .resizable()
                         .frame(width: 50, height: 50)
                         .background(Color.white.opacity(0.2))
                         .clipShape(Circle())
 
+                    // User greeting and name
                     VStack(alignment: .leading) {
                         Text(viewModel.currentUser.greeting)
                             .font(.caption)
@@ -41,7 +47,10 @@ struct HomeView: View {
                             .bold()
                             .foregroundColor(.white)
                     }
+
                     Spacer()
+
+                    // Notification and settings icons
                     HStack(spacing: 15) {
                         Image("noti_2")
                             .padding(7)
@@ -64,6 +73,7 @@ struct HomeView: View {
                         .bold()
                         .foregroundColor(.white.opacity(0.8))
 
+                    // Display user's current balance in INR
                     Text("₹ \(String(format: "%.2f", viewModel.balance))")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundColor(.white)
@@ -74,6 +84,7 @@ struct HomeView: View {
 
                 // Action Buttons
                 HStack(spacing: 20) {
+                    // Withdraw button
                     Button(action: { showWithdraw = true }) {
                         Text("WITHDRAW")
                             .font(.system(size: 12, weight: .bold))
@@ -83,6 +94,7 @@ struct HomeView: View {
                             .background(Color.white)
                             .cornerRadius(10)
                     }
+                    // Deposit button
                     Button(action: { showDeposit = true }) {
                         Text("DEPOSIT")
                             .font(.system(size: 12, weight: .bold))
@@ -100,6 +112,7 @@ struct HomeView: View {
 
                 // Transaction History Section
                 VStack {
+                    // History header with expand/collapse toggle
                     HStack {
                         Text("History").font(.headline).bold()
                         Spacer()
@@ -112,7 +125,7 @@ struct HomeView: View {
                     .padding(.horizontal, 25)
                     .padding(.top, 25)
 
-                    // 3. Check the Query results instead of viewModel.transactions
+                    // // Display transactions or empty state
                     if transactions.isEmpty {
                         Spacer()
                         EmptyStateView()
@@ -120,7 +133,7 @@ struct HomeView: View {
                     } else {
                         ScrollView {
                             VStack(spacing: 12) {
-                                // 4. Display persistent data
+                                // Show 5 transactions by default, 10 when expanded
                                 ForEach(transactions.prefix(isExpanded ? 10 : 5)) { transaction in
                                     TransactionRow(viewModel: viewModel, transaction: transaction)
                                 }
@@ -135,10 +148,12 @@ struct HomeView: View {
                 .ignoresSafeArea(edges: .bottom)
             }
         }
+        // Deposit sheet with SwiftData context
         .sheet(isPresented: $showDeposit) {
             TransferSheetView(viewModel: viewModel, mode: .deposit)
                 .environment(\.modelContext, modelContext)
         }
+        // Withdraw sheet with SwiftData context
         .sheet(isPresented: $showWithdraw) {
             TransferSheetView(viewModel: viewModel, mode: .withdraw)
                 .environment(\.modelContext, modelContext)

@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct TransferSheetView: View {
+    // MARK: - Properties
     @ObservedObject var viewModel: AppViewModel
     @Environment(\.presentationMode) var presentationMode
 
@@ -24,10 +25,14 @@ struct TransferSheetView: View {
 
     let currencies = ["USD", "AED", "JPY", "CNY", "GBP", "CAD", "AUD", "IQD", "INR", "KRW"]
 
+
+    // MARK: - Body
     var body: some View {
         ZStack {
+            // Background color
             Color.darkBackground.ignoresSafeArea()
             VStack(spacing: 0) {
+                 // Balance Display
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Available Balance")
                         .font(.subheadline)
@@ -41,7 +46,9 @@ struct TransferSheetView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 20)
 
+                // Currency Selector & Amount Input
                 HStack(spacing: 12) {
+                    // Currency dropdown menu
                     Menu {
                         ForEach(currencies, id: \.self) { currency in
                             Button(action: { selectedCurrency = currency }) {
@@ -64,6 +71,7 @@ struct TransferSheetView: View {
                         .cornerRadius(12)
                     }
 
+                    // Amount display field (read-only, updated by keypad)
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.white)
@@ -78,6 +86,7 @@ struct TransferSheetView: View {
                 }
                 .padding(.horizontal)
 
+                // Custom Keypad
                 CustomKeypad(enteredValue: $amountString) {
                     Task {
                         await validateAndProcess()
@@ -98,21 +107,25 @@ struct TransferSheetView: View {
         .presentationCornerRadius(30)
     }
 
+    // Helper Methods
     private func validateAndProcess() async {
+        // Validate amount input
         guard let value = Double(amountString), value > 0 else {
             alertMessage = "Please enter a valid amount."
             showAlert = true
             return
         }
 
+        // Fetch exchange rate and calculate INR equivalent
         let rate = await viewModel.getRate(for: selectedCurrency)
         let inrValue = value * rate
 
+        // Check for sufficient funds on withdrawal
         if mode == .withdraw && inrValue > viewModel.balance {
             alertMessage = "You do not have enough balance for this transaction."
             showAlert = true
         } else {
-            // Pass the modelContext to your ViewModel functions
+            // Process transaction and dismiss sheet
             if mode == .deposit {
                 viewModel.deposit(amount: value, currency: selectedCurrency, context: modelContext)
             } else {
