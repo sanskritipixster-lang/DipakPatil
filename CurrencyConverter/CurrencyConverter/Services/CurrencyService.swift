@@ -22,10 +22,12 @@ class CurrencyService {
         guard let apiKey = KeychainHelper.fetch() else {
             throw URLError(.userAuthenticationRequired)
         }
-
         // Construct the API endpoint URL
         let urlString = "\(Constants.AppUrl.baseURL)/\(apiKey)/pair/\(base)/\(target)"
 
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
         // Perform network request
         let (data, response) = try await URLSession.shared.data(from: url)
 
